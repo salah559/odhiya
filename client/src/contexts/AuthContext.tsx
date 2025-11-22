@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { User as FirebaseUser, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { User as FirebaseUser, onAuthStateChanged, signOut as firebaseSignOut, signInWithPopup } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db, googleProvider } from "@/lib/firebase";
 import { User, UserRole } from "@shared/schema";
 
 interface AuthContextType {
@@ -10,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  signInWithGoogle: (role: UserRole) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,8 +62,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setFirebaseUser(null);
   };
 
+  const signInWithGoogle = async (role: UserRole): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        const newUser: User = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          role: role,
+          phone: firebaseUser.phoneNumber || undefined,
+          createdAt: Date.now(),
+        };
+        
+        await setDoc(userDocRef, newUser);
+        setUser(newUser);
+      } else {
+        setUser(userDoc.data() as User);
+      }
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error("Google sign-in error:", error);
+      
+      let errorMessage = "حدث خطأ أثناء تسجيل الدخول بحساب Google";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "تم إغلاق نافذة تسجيل الدخول";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "تم حظر نافذة تسجيل الدخول من قبل المتصفح";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "تم إلغاء طلب تسجيل الدخول";
+      }
+      
+      return { success: false, error: errorMessage };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, signOut, refreshUser, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );
