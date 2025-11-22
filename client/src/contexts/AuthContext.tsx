@@ -10,7 +10,7 @@ interface AuthContextType {
   loading: boolean;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
-  signInWithGoogle: (role: UserRole) => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: (role?: UserRole) => Promise<{ success: boolean; error?: string; userExists?: boolean }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setFirebaseUser(null);
   };
 
-  const signInWithGoogle = async (role: UserRole): Promise<{ success: boolean; error?: string }> => {
+  const signInWithGoogle = async (role?: UserRole): Promise<{ success: boolean; error?: string; userExists?: boolean }> => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
@@ -70,7 +70,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userDocRef = doc(db, "users", firebaseUser.uid);
       const userDoc = await getDoc(userDocRef);
       
-      if (!userDoc.exists()) {
+      if (userDoc.exists()) {
+        // User already exists
+        const existingUser = userDoc.data() as User;
+        setUser(existingUser);
+        return { success: true, userExists: true };
+      } else {
+        // New user - role is required
+        if (!role) {
+          // Sign out and return error
+          await firebaseSignOut(auth);
+          return { 
+            success: false, 
+            error: "يجب اختيار نوع الحساب عند التسجيل لأول مرة",
+            userExists: false 
+          };
+        }
+        
+        // Create new user document
         const newUser: User = {
           uid: firebaseUser.uid,
           email: firebaseUser.email || "",
@@ -81,11 +98,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         await setDoc(userDocRef, newUser);
         setUser(newUser);
-      } else {
-        setUser(userDoc.data() as User);
+        return { success: true, userExists: false };
       }
-      
-      return { success: true };
     } catch (error: any) {
       console.error("Google sign-in error:", error);
       

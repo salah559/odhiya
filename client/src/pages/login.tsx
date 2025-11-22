@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db, googleProvider } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { useLocation } from "wouter";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,8 +26,10 @@ type LoginData = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { signInWithGoogle, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [waitingForGoogleRedirect, setWaitingForGoogleRedirect] = useState(false);
 
   const {
     register,
@@ -87,15 +90,33 @@ export default function Login() {
     }
   };
 
+  // Handle user redirect after successful Google sign-in
+  useEffect(() => {
+    if (waitingForGoogleRedirect && user) {
+      // User has been set by AuthContext, now redirect
+      if (user.role === "admin") {
+        setLocation("/admin");
+      } else if (user.role === "seller") {
+        setLocation("/seller");
+      } else {
+        setLocation("/browse");
+      }
+      setWaitingForGoogleRedirect(false);
+    }
+  }, [waitingForGoogleRedirect, user, setLocation]);
+
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    setWaitingForGoogleRedirect(true);
+    
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const userDoc = await getDoc(doc(db, "users", result.user.uid));
+      // Call AuthContext method without role (for existing users only)
+      const result = await signInWithGoogle();
       
-      if (!userDoc.exists()) {
-        // User doesn't exist, redirect to register
-        await auth.signOut();
+      // Check if this is a new user (regardless of success)
+      if (result.userExists === false) {
+        // New user, redirect to register
+        setWaitingForGoogleRedirect(false);
         toast({
           title: "حساب جديد",
           description: "يرجى إنشاء حساب أولاً واختيار نوع الحساب",
@@ -104,36 +125,30 @@ export default function Login() {
         setLocation("/register");
         return;
       }
-
-      const userData = userDoc.data();
       
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: `مرحباً بك ${userData.email}`,
-      });
-
-      // Redirect based on role
-      if (userData.role === "admin") {
-        setLocation("/admin");
-      } else if (userData.role === "seller") {
-        setLocation("/seller");
-      } else {
-        setLocation("/browse");
+      if (result.success && result.userExists === true) {
+        // Existing user logged in successfully
+        toast({
+          title: "تم تسجيل الدخول بنجاح",
+          description: "مرحباً بك",
+        });
+        
+        // useEffect will handle redirect when user updates
+        // (waitingForGoogleRedirect is already set to true)
+      } else if (!result.success) {
+        // Error occurred
+        setWaitingForGoogleRedirect(false);
+        toast({
+          title: "خطأ",
+          description: result.error || "حدث خطأ أثناء تسجيل الدخول",
+          variant: "destructive",
+        });
       }
-    } catch (error: any) {
-      let errorMessage = "حدث خطأ أثناء تسجيل الدخول بحساب Google";
-      
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = "تم إغلاق نافذة تسجيل الدخول";
-      } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = "تم حظر نافذة تسجيل الدخول من قبل المتصفح";
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        return; // Don't show error for cancelled requests
-      }
-
+    } catch (error) {
+      setWaitingForGoogleRedirect(false);
       toast({
         title: "خطأ",
-        description: errorMessage,
+        description: "حدث خطأ غير متوقع",
         variant: "destructive",
       });
     } finally {

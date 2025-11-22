@@ -100,6 +100,12 @@ The following environment variables must be set in Replit:
   - تم إصلاح تحذير nested <a> tags في Header component
   - تم تكوين workflow للتطوير على port 5000
   - تم تكوين deployment settings (autoscale)
+  - **تم إضافة تسجيل الدخول بحساب Google**:
+    - إضافة GoogleAuthProvider في Firebase configuration
+    - تحديث AuthContext لدعم Google sign-in مع حماية البيانات
+    - إضافة أزرار Google في صفحات Login و Register
+    - معالجة صحيحة للمستخدمين الجدد والحاليين
+    - التوجيه التلقائي حسب دور المستخدم
 - 2025-01-22: إنشاء المشروع وإعداد البنية الأساسية
 - تم إضافة Firebase Authentication و Firestore و Storage
 - تم بناء نظام الأدوار الكامل (buyer/seller/admin)
