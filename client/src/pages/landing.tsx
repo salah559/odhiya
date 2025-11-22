@@ -44,24 +44,19 @@ export default function LandingPage() {
                 تواصل آمن بين البائعين والمشترين مع إشراف إداري كامل
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/register">
-                  <a>
-                    <Button size="lg" className="text-lg" data-testid="button-register-buyer">
-                      ابدأ الشراء
-                    </Button>
-                  </a>
+                <Link href="/register" data-testid="button-register-buyer">
+                  <Button size="lg" className="text-lg">
+                    ابدأ الشراء
+                  </Button>
                 </Link>
-                <Link href="/register">
-                  <a>
-                    <Button 
-                      size="lg" 
-                      variant="outline" 
-                      className="text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20" 
-                      data-testid="button-register-seller"
-                    >
-                      ابدأ البيع
-                    </Button>
-                  </a>
+                <Link href="/register" data-testid="button-register-seller">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    className="text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                  >
+                    ابدأ البيع
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -229,19 +224,15 @@ export default function LandingPage() {
             انضم الآن إلى آلاف المستخدمين الذين يثقون في أضحيتي
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/register">
-              <a>
-                <Button size="lg" className="text-lg" data-testid="button-cta-register">
-                  إنشاء حساب مجاني
-                </Button>
-              </a>
+            <Link href="/register" data-testid="button-cta-register">
+              <Button size="lg" className="text-lg">
+                إنشاء حساب مجاني
+              </Button>
             </Link>
-            <Link href="/browse">
-              <a>
-                <Button size="lg" variant="outline" className="text-lg" data-testid="button-cta-browse">
-                  تصفح الأغنام
-                </Button>
-              </a>
+            <Link href="/browse" data-testid="button-cta-browse">
+              <Button size="lg" variant="outline" className="text-lg">
+                تصفح الأغنام
+              </Button>
             </Link>
           </div>
         </div>
@@ -261,24 +252,18 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-4">روابط سريعة</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/browse">
-                    <a className="text-muted-foreground hover:text-foreground transition-colors">
-                      تصفح الأغنام
-                    </a>
+                  <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
+                    تصفح الأغنام
                   </Link>
                 </li>
                 <li>
-                  <Link href="/register">
-                    <a className="text-muted-foreground hover:text-foreground transition-colors">
-                      إنشاء حساب
-                    </a>
+                  <Link href="/register" className="text-muted-foreground hover:text-foreground transition-colors">
+                    إنشاء حساب
                   </Link>
                 </li>
                 <li>
-                  <Link href="/login">
-                    <a className="text-muted-foreground hover:text-foreground transition-colors">
-                      تسجيل الدخول
-                    </a>
+                  <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">
+                    تسجيل الدخول
                   </Link>
                 </li>
               </ul>
