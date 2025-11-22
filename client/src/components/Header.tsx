@@ -51,15 +51,9 @@ export default function Header() {
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 hover-elevate px-3 py-2 rounded-md" data-testid="link-home">
-            <img 
-              src="/logo.png?v=3" 
-              alt="أضحيتي" 
-              className="h-14 md:h-16 w-auto object-contain"
-              onError={(e) => {
-                console.log('Logo failed to load');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+            <div className="text-2xl md:text-3xl font-bold text-primary">
+              أضحيتي
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
