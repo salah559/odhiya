@@ -1,12 +1,12 @@
 import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 
 // modify the interface with any CRUD methods
 // you might need
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
 }
 
@@ -21,16 +21,22 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByEmail(email: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.email === email,
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const uid = randomUUID();
+    const user: User = { 
+      uid,
+      email: insertUser.email,
+      role: insertUser.role,
+      phone: insertUser.phone,
+      createdAt: Date.now()
+    };
+    this.users.set(uid, user);
     return user;
   }
 }
