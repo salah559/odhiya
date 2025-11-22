@@ -66,7 +66,40 @@
 - الخطوط: Cairo و Tajawal
 - الألوان: نظام الوان احترافي مع دعم الوضع الليلي
 
+## Replit Setup:
+
+### Development Workflow:
+- **Command**: `npm run dev`
+- **Port**: 5000 (both frontend and backend)
+- The dev server uses Vite middleware integrated with Express
+- Frontend and backend run together on the same port
+
+### Deployment Configuration:
+- **Target**: Autoscale (stateless web application)
+- **Build**: `npm run build` (builds Vite frontend and bundles Express backend)
+- **Run**: `npm start` (runs the production server)
+
+### Required Environment Variables:
+The following environment variables must be set in Replit:
+- `VITE_FIREBASE_API_KEY` - Firebase API key (client-side)
+- `VITE_FIREBASE_PROJECT_ID` - Firebase project ID (client-side)
+- `VITE_FIREBASE_APP_ID` - Firebase app ID (client-side)
+- `SESSION_SECRET` - Session secret for Express sessions (automatically provided by Replit)
+
+### Project Structure:
+- `client/` - React frontend (Vite + TypeScript + Tailwind)
+- `server/` - Express backend with Firebase integration
+- `shared/` - Shared schemas and types between frontend and backend
+- `server/index-dev.ts` - Development server with Vite middleware
+- `server/index-prod.ts` - Production server serving static files
+
 ## آخر التحديثات:
+- 2025-11-22: تم إعداد المشروع للعمل على Replit
+  - تم تثبيت جميع التبعيات
+  - تم إصلاح مشكلة storage interface (تغيير username إلى email)
+  - تم إصلاح تحذير nested <a> tags في Header component
+  - تم تكوين workflow للتطوير على port 5000
+  - تم تكوين deployment settings (autoscale)
 - 2025-01-22: إنشاء المشروع وإعداد البنية الأساسية
 - تم إضافة Firebase Authentication و Firestore و Storage
 - تم بناء نظام الأدوار الكامل (buyer/seller/admin)
