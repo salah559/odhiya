@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth as firebaseAuth, db } from "@/lib/firebase";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export default function Login() {
     try {
       // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(
-        auth,
+        firebaseAuth,
         data.email,
         data.password
       );
