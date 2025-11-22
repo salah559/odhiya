@@ -36,6 +36,10 @@ export default function Header() {
     return "/browse";
   };
 
+  const isActive = (path: string) => {
+    return location === path;
+  };
+
   const getRoleLabel = (role: string) => {
     switch (role) {
       case "admin": return "مدير";
@@ -59,26 +63,51 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2">
-            {user ? (
-              <>
-                <Link href={getDashboardLink() || "/"}>
-                  <Button variant="ghost" data-testid="link-dashboard">
-                    لوحة التحكم
-                  </Button>
-                </Link>
-                {(user.role === "buyer" || user.role === "admin") && (
-                  <Link href="/browse">
-                    <Button variant="ghost" data-testid="link-browse">
-                      تصفح الأغنام
-                    </Button>
-                  </Link>
-                )}
-              </>
-            ) : (
-              <Link href="/browse">
-                <Button variant="ghost" data-testid="link-browse">
-                  تصفح الأغنام
+          <nav className="hidden md:flex items-center gap-1">
+            {/* الرئيسية */}
+            <Link href="/" className={cn("rounded-md hover-elevate", isActive("/") && "bg-accent/10")}>
+              <Button 
+                variant="ghost" 
+                data-testid="link-home-nav"
+                className={cn(isActive("/") && "text-primary font-semibold")}
+              >
+                الرئيسية
+              </Button>
+            </Link>
+
+            {/* الأضاحي */}
+            <Link href="/browse" className={cn("rounded-md hover-elevate", isActive("/browse") && "bg-accent/10")}>
+              <Button 
+                variant="ghost" 
+                data-testid="link-sheep"
+                className={cn(isActive("/browse") && "text-primary font-semibold")}
+              >
+                الأضاحي
+              </Button>
+            </Link>
+
+            {/* لوحة تحكم البائع - فقط للبائعين */}
+            {user?.role === "seller" && (
+              <Link href="/seller" className={cn("rounded-md hover-elevate", isActive("/seller") && "bg-accent/10")}>
+                <Button 
+                  variant="ghost" 
+                  data-testid="link-seller-dashboard"
+                  className={cn(isActive("/seller") && "text-primary font-semibold")}
+                >
+                  لوحة تحكم البائع
+                </Button>
+              </Link>
+            )}
+
+            {/* لوحة تحكم الإدارة - فقط للمسؤول */}
+            {user?.role === "admin" && (
+              <Link href="/admin" className={cn("rounded-md hover-elevate", isActive("/admin") && "bg-accent/10")}>
+                <Button 
+                  variant="ghost" 
+                  data-testid="link-admin-dashboard"
+                  className={cn(isActive("/admin") && "text-primary font-semibold")}
+                >
+                  لوحة تحكم الإدارة
                 </Button>
               </Link>
             )}
@@ -144,44 +173,61 @@ export default function Header() {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t py-4 space-y-2">
-            {user ? (
+            {/* الرئيسية */}
+            <Link href="/">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", isActive("/") && "bg-accent/10 text-primary font-semibold")}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                الرئيسية
+              </Button>
+            </Link>
+
+            {/* الأضاحي */}
+            <Link href="/browse">
+              <Button
+                variant="ghost"
+                className={cn("w-full justify-start", isActive("/browse") && "bg-accent/10 text-primary font-semibold")}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                الأضاحي
+              </Button>
+            </Link>
+
+            {/* لوحة تحكم البائع - فقط للبائعين */}
+            {user?.role === "seller" && (
+              <Link href="/seller">
+                <Button
+                  variant="ghost"
+                  className={cn("w-full justify-start", isActive("/seller") && "bg-accent/10 text-primary font-semibold")}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  لوحة تحكم البائع
+                </Button>
+              </Link>
+            )}
+
+            {/* لوحة تحكم الإدارة - فقط للمسؤول */}
+            {user?.role === "admin" && (
+              <Link href="/admin">
+                <Button
+                  variant="ghost"
+                  className={cn("w-full justify-start", isActive("/admin") && "bg-accent/10 text-primary font-semibold")}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  لوحة تحكم الإدارة
+                </Button>
+              </Link>
+            )}
+
+            {/* تسجيل الدخول - فقط إذا لم يكن مسجل دخول */}
+            {!user && (
               <>
-                <Link href={getDashboardLink() || "/"}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    لوحة التحكم
-                  </Button>
-                </Link>
-                {(user.role === "buyer" || user.role === "admin") && (
-                  <Link href="/browse">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      تصفح الأغنام
-                    </Button>
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                <Link href="/browse">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    تصفح الأغنام
-                  </Button>
-                </Link>
                 <Link href="/login">
                   <Button
                     variant="ghost"
-                    className="w-full justify-start sm:hidden"
+                    className="w-full justify-start"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     تسجيل الدخول
