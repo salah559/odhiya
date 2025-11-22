@@ -6,18 +6,23 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useLocation } from "wouter";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, UserPlus, ShoppingCart, Store } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { cn } from "@/lib/utils";
 
 export default function Register() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { signInWithGoogle } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<"buyer" | "seller" | null>(null);
 
   const {
@@ -86,6 +91,44 @@ export default function Register() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    if (!selectedRole) {
+      toast({
+        title: "خطأ",
+        description: "يرجى اختيار نوع الحساب أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle(selectedRole);
+      
+      if (result.success) {
+        toast({
+          title: "تم إنشاء الحساب بنجاح",
+          description: "مرحباً بك في أضحيتي",
+        });
+
+        // Redirect based on role
+        if (selectedRole === "seller") {
+          setLocation("/seller");
+        } else {
+          setLocation("/browse");
+        }
+      } else {
+        toast({
+          title: "خطأ",
+          description: result.error || "حدث خطأ أثناء التسجيل بحساب Google",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -198,7 +241,7 @@ export default function Register() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading}
+              disabled={loading || googleLoading}
               data-testid="button-submit"
             >
               {loading ? (
@@ -210,6 +253,36 @@ export default function Register() {
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
                   إنشاء حساب
+                </>
+              )}
+            </Button>
+
+            {/* Separator */}
+            <div className="relative">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                أو
+              </span>
+            </div>
+
+            {/* Google Sign Up */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignUp}
+              disabled={loading || googleLoading}
+              data-testid="button-google-signup"
+            >
+              {googleLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  جاري إنشاء الحساب...
+                </>
+              ) : (
+                <>
+                  <FcGoogle className="mr-2 h-5 w-5" />
+                  التسجيل بحساب Google
                 </>
               )}
             </Button>

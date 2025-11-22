@@ -2,16 +2,18 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth, db, googleProvider } from "@/lib/firebase";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, LogIn } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 
 const loginSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
@@ -24,6 +26,7 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const {
     register,
@@ -84,6 +87,60 @@ export default function Login() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const userDoc = await getDoc(doc(db, "users", result.user.uid));
+      
+      if (!userDoc.exists()) {
+        // User doesn't exist, redirect to register
+        await auth.signOut();
+        toast({
+          title: "حساب جديد",
+          description: "يرجى إنشاء حساب أولاً واختيار نوع الحساب",
+          variant: "default",
+        });
+        setLocation("/register");
+        return;
+      }
+
+      const userData = userDoc.data();
+      
+      toast({
+        title: "تم تسجيل الدخول بنجاح",
+        description: `مرحباً بك ${userData.email}`,
+      });
+
+      // Redirect based on role
+      if (userData.role === "admin") {
+        setLocation("/admin");
+      } else if (userData.role === "seller") {
+        setLocation("/seller");
+      } else {
+        setLocation("/browse");
+      }
+    } catch (error: any) {
+      let errorMessage = "حدث خطأ أثناء تسجيل الدخول بحساب Google";
+      
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "تم إغلاق نافذة تسجيل الدخول";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "تم حظر نافذة تسجيل الدخول من قبل المتصفح";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        return; // Don't show error for cancelled requests
+      }
+
+      toast({
+        title: "خطأ",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-background px-4 py-12">
       <Card className="w-full max-w-md">
@@ -129,7 +186,7 @@ export default function Login() {
             <Button
               type="submit"
               className="w-full"
-              disabled={loading}
+              disabled={loading || googleLoading}
               data-testid="button-submit"
             >
               {loading ? (
@@ -141,6 +198,36 @@ export default function Login() {
                 <>
                   <LogIn className="mr-2 h-4 w-4" />
                   تسجيل الدخول
+                </>
+              )}
+            </Button>
+
+            {/* Separator */}
+            <div className="relative">
+              <Separator />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
+                أو
+              </span>
+            </div>
+
+            {/* Google Sign In */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={loading || googleLoading}
+              data-testid="button-google-signin"
+            >
+              {googleLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  جاري تسجيل الدخول...
+                </>
+              ) : (
+                <>
+                  <FcGoogle className="mr-2 h-5 w-5" />
+                  تسجيل الدخول بحساب Google
                 </>
               )}
             </Button>
