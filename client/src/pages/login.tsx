@@ -26,7 +26,8 @@ type LoginData = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { signInWithGoogle, user } = useAuth();
+  const auth = useAuth();
+  const { signInWithGoogle, user } = auth;
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [waitingForGoogleRedirect, setWaitingForGoogleRedirect] = useState(false);
