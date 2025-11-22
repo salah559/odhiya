@@ -50,10 +50,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="flex h-16 md:h-20 items-center justify-between gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 hover-elevate px-3 py-2 rounded-md" data-testid="link-home">
-            <div className="text-2xl md:text-3xl font-bold text-primary">
-              أضحيتي
-            </div>
+          <Link href="/" className="flex items-center gap-2 hover-elevate px-2 py-1 rounded-md" data-testid="link-home">
+            <img 
+              src="/logo.png" 
+              alt="أضحيتي" 
+              className="h-14 md:h-16 w-auto object-contain"
+            />
           </Link>
 
           {/* Desktop Navigation */}
