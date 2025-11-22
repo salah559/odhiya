@@ -64,7 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async (role?: UserRole): Promise<{ success: boolean; error?: string; userExists?: boolean }> => {
     try {
+      console.log('Attempting Google sign-in with role:', role);
+      console.log('Auth object:', auth);
+      console.log('Google provider:', googleProvider);
+      
       const result = await signInWithPopup(auth, googleProvider);
+      console.log('Sign-in successful, user:', result.user);
       const firebaseUser = result.user;
       
       const userDocRef = doc(db, "users", firebaseUser.uid);
